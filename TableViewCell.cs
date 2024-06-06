@@ -9,7 +9,7 @@ public class TableViewCell : UITableViewCell
 
     public UIImageView Icon { get; set; }
 
-    private nfloat padding = 16.0f;
+    private nfloat padding = 12.0f;
 
     public TableViewCell(IntPtr ptr) : base(ptr)
     {
@@ -58,11 +58,11 @@ public class TableViewCell : UITableViewCell
 
         Title.TopAnchor.ConstraintEqualTo(ContentView.TopAnchor, padding).Active = true;
         Title.LeadingAnchor.ConstraintEqualTo(Icon.TrailingAnchor, padding).Active = true;
-        Title.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor).Active = true;
+        Title.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor, -padding).Active = true;
 
         Subtitle.TopAnchor.ConstraintEqualTo(Title.BottomAnchor).Active = true;
         Subtitle.BottomAnchor.ConstraintEqualTo(ContentView.BottomAnchor, -padding).Active = true;
         Subtitle.LeadingAnchor.ConstraintEqualTo(Icon.TrailingAnchor, padding).Active = true;
-        Subtitle.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor).Active = true;
+        Subtitle.TrailingAnchor.ConstraintEqualTo(ContentView.TrailingAnchor, -padding).Active = true;
     }
 }

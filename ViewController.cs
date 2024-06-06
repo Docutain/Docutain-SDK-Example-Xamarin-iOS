@@ -7,6 +7,8 @@ using CoreFoundation;
 using static Docutain_SDK_Example_Xamarin_iOS.ViewController;
 using Xamarin.Essentials;
 using System.Threading.Tasks;
+using System.Linq;
+using CoreGraphics;
 
 namespace Docutain_SDK_Example_Xamarin_iOS
 {
@@ -26,7 +28,8 @@ namespace Docutain_SDK_Example_Xamarin_iOS
             DocumentScan,
             DataExtraction,
             TextRecognition,
-            PDFGenerating
+            PDFGenerating,
+            Settings
         }
 
         private string cellReuseIdentifier = "cell";
@@ -81,6 +84,10 @@ namespace Docutain_SDK_Example_Xamarin_iOS
                     selectedOption = ItemType.PDFGenerating;
                     StartPDFGenerating();
                     break;
+                case ItemType.Settings:
+                    selectedOption = ItemType.None;
+                    ShowSettings();
+                    break;
                 default:
                     selectedOption = ItemType.None;
                     Console.WriteLine("Invalid item selected");
@@ -88,24 +95,81 @@ namespace Docutain_SDK_Example_Xamarin_iOS
             }
         }
 
+        private void ShowSettings()
+        {
+            NavigationController.PushViewController(new ViewControllerSettings(), true);
+        }
+
         private async void StartScan()
         {
             //define a DocumentScannerConfiguration to alter the scan process and define a custom theme to match your branding
-            var scanConfig = new DocumentScannerConfiguration();
-            scanConfig.AllowCaptureModeSetting = true; //defaults to false
-            scanConfig.PageEditConfig.AllowPageFilter = true; //defaults to true
-            scanConfig.PageEditConfig.AllowPageRotation = true; //defaults to true
-            //alter the onboarding image source if you like
-            //scanConfig.OnboardingImageSource = ...
-
-            //detailed information about theming possibilities can be found here: https://docs.docutain.com/docs/Xamarin/theming
-
+            var scanConfig = GetScanConfig();
+            // Start the scanner using the provided config
             bool success = await UI.ScanDocument(scanConfig);
             if (success)
                 ProceedBasedOnCurrentSelection(null);
             else
                 Console.WriteLine("canceled scan process");
         }
+
+        private DocumentScannerConfiguration GetScanConfig(bool imageImport = false)
+        {
+            //There are a lot of settings to configure the scanner to match your specific needs
+            //Check out the documentation to learn more https://docs.docutain.com/docs/Xamarin/docScan#change-default-scan-behaviour
+
+            var scanConfig = new DocumentScannerConfiguration();
+
+            if (imageImport)
+            {
+                if (UIDevice.CurrentDevice.CheckSystemVersion(14, 0))
+                {
+                    scanConfig.Source = Source.GalleryMultiple;
+                }
+                else
+                {
+                    scanConfig.Source = Source.Gallery;
+                }
+            }
+            //In this sample app we provide a settings page which the user can use to alter the scan settings
+            //The settings are stored in and read from "DocutainPreferences"
+            //This is supposed to be just an example, you do not need to implement it in that exact way
+            //If you do not want to provide your users the possibility to alter the settings themselves at all
+            //You can just set the settings according to the apps needs
+
+            // Set scan settings
+            scanConfig.AllowCaptureModeSetting = DocutainPreferences.AllowCaptureModeSetting;
+            scanConfig.AutoCapture = DocutainPreferences.AutoCapture;
+            scanConfig.AutoCrop = DocutainPreferences.AutoCrop;
+            scanConfig.MultiPage = DocutainPreferences.MultiPage;
+            scanConfig.DefaultScanFilter = DocutainPreferences.DefaultScanFilter;
+
+            // Set edit settings
+            scanConfig.PageEditConfig.AllowPageFilter = DocutainPreferences.AllowPageFilter;
+            scanConfig.PageEditConfig.AllowPageRotation = DocutainPreferences.AllowPageRotation;
+            scanConfig.PageEditConfig.AllowPageCropping = DocutainPreferences.AllowPageCropping;
+            scanConfig.PageEditConfig.AllowPageArrangement = DocutainPreferences.AllowPageArrangement;
+            scanConfig.PageEditConfig.PageArrangementShowPageNumber = DocutainPreferences.PageArrangementShowPageNumber;
+            scanConfig.PageEditConfig.PageArrangementShowDeleteButton = DocutainPreferences.PageArrangementShowDeleteButton;
+
+            // Set color settings
+            scanConfig.ColorConfig.SetColorPrimary(DocutainPreferences.ColorPrimary["light"].ToString().ToUIColor(), DocutainPreferences.ColorPrimary["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorSecondary(DocutainPreferences.ColorSecondary["light"].ToString().ToUIColor(), DocutainPreferences.ColorSecondary["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorOnSecondary(DocutainPreferences.ColorOnSecondary["light"].ToString().ToUIColor(), DocutainPreferences.ColorOnSecondary["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorScanButtonsLayoutBackground(DocutainPreferences.ColorScanButtonsLayoutBackground["light"].ToString().ToUIColor(), DocutainPreferences.ColorScanButtonsLayoutBackground["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorScanButtonsForeground(DocutainPreferences.ColorScanButtonsForeground["light"].ToString().ToUIColor(), DocutainPreferences.ColorScanButtonsForeground["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorScanPolygon(DocutainPreferences.ColorScanPolygon["light"].ToString().ToUIColor(), DocutainPreferences.ColorScanPolygon["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorBottomBarBackground(DocutainPreferences.ColorBottomBarBackground["light"].ToString().ToUIColor(), DocutainPreferences.ColorBottomBarBackground["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorBottomBarForeground(DocutainPreferences.ColorBottomBarForeground["light"].ToString().ToUIColor(), DocutainPreferences.ColorBottomBarForeground["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorTopBarBackground(DocutainPreferences.ColorTopBarBackground["light"].ToString().ToUIColor(), DocutainPreferences.ColorTopBarBackground["dark"].ToString().ToUIColor());
+            scanConfig.ColorConfig.SetColorTopBarForeground(DocutainPreferences.ColorTopBarForeground["light"].ToString().ToUIColor(), DocutainPreferences.ColorTopBarForeground["dark"].ToString().ToUIColor());
+
+            // Alter the onboarding image source if you like
+            // scanConfig.OnboardingImageSource = ...
+
+            // Detailed information about theming possibilities can be found here: https://docs.docutain.com/docs/Xamarin/theming
+            return scanConfig;
+        }
+
 
         private async void StartPDFImport()
         {
@@ -121,14 +185,14 @@ namespace Docutain_SDK_Example_Xamarin_iOS
 
         private async void StartImageImport()
         {
-            var imageFile = await FilePicker.PickAsync(new PickOptions
-            {
-                FileTypes = FilePickerFileType.Images
-            });
-            if (imageFile != null)
-                ProceedBasedOnCurrentSelection(imageFile.FullPath);
+            // Define a DocumentScannerConfiguration to alter the scan process and define a custom theme to match your branding
+            var scanConfig = GetScanConfig(imageImport: true);
+            // Start the scanner using the provided config
+            bool success = await UI.ScanDocument(scanConfig);
+            if (success)
+                ProceedBasedOnCurrentSelection(null);
             else
-                Console.WriteLine("canceled image import");
+                Console.WriteLine("canceled scan process");
         }
 
 
@@ -150,6 +214,14 @@ namespace Docutain_SDK_Example_Xamarin_iOS
         private void ShowInputOptionAlert()
         {
             var alert = UIAlertController.Create("Info", "input_option_message".Localized(), UIAlertControllerStyle.ActionSheet);
+
+            if (alert.PopoverPresentationController != null)
+            {
+                alert.PopoverPresentationController.SourceView = this.View;
+                alert.PopoverPresentationController.SourceRect = new CoreGraphics.CGRect(this.View.Bounds.GetMidX(), this.View.Bounds.GetMidY(), 0, 0);
+                alert.PopoverPresentationController.PermittedArrowDirections = 0;
+            }
+
             alert.AddAction(UIAlertAction.Create("input_option_scan".Localized(), UIAlertActionStyle.Default, action => StartScan()));
             alert.AddAction(UIAlertAction.Create("input_option_PDF".Localized(), UIAlertActionStyle.Default, action => StartPDFImport()));
             alert.AddAction(UIAlertAction.Create("input_option_Image".Localized(), UIAlertActionStyle.Default, action => StartImageImport()));
@@ -253,10 +325,12 @@ namespace Docutain_SDK_Example_Xamarin_iOS
         private string cellReuseIdentifier = "cell";
         private List<ListItem> listItems = new List<ListItem>
         {
-            new ListItem { Title = "title_document_scan".Localized(), Icon = "DocumentScanner", Subtitle = "subtitle_document_scan".Localized(), ItemType = ItemType.DocumentScan },
-            new ListItem { Title = "title_data_extraction".Localized(), Icon = "DataExtraction", Subtitle = "subtitle_data_extraction".Localized(), ItemType = ItemType.DataExtraction },
-            new ListItem { Title = "title_text_recognition".Localized(), Icon = "OCR", Subtitle = "subtitle_text_recognition".Localized(), ItemType = ItemType.TextRecognition },
-            new ListItem { Title = "title_PDF_generating".Localized(), Icon = "PDF", Subtitle = "subtitle_PDF_generating".Localized(), ItemType = ItemType.PDFGenerating }
+            new ListItem { Title = "title_document_scan".Localized(), Icon = "icons8-scanner-50.png", Subtitle = "subtitle_document_scan".Localized(), ItemType = ItemType.DocumentScan },
+            new ListItem { Title = "title_data_extraction".Localized(), Icon = "icons8-document-50.png", Subtitle = "subtitle_data_extraction".Localized(), ItemType = ItemType.DataExtraction },
+            new ListItem { Title = "title_text_recognition".Localized(), Icon = "icons8-text-box-50.png", Subtitle = "subtitle_text_recognition".Localized(), ItemType = ItemType.TextRecognition },
+            new ListItem { Title = "title_PDF_generating".Localized(), Icon = "icons8-pdf-50.png", Subtitle = "subtitle_PDF_generating".Localized(), ItemType = ItemType.PDFGenerating },
+            new ListItem { Title = "title_settings".Localized(), Icon = "icons8-settings-50.png", Subtitle = "subtitle_settings".Localized(), ItemType = ItemType.Settings }
+
         };
 
         public MyTableViewSource() { }

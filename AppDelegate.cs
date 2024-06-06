@@ -8,19 +8,12 @@ using Docutain.SDK.Xamarin.iOS;
 
 namespace Docutain_SDK_Example_Xamarin_iOS
 {
-    public enum LogLevel
-    {
-        NONE,
-        ERROR,
-        VERBOSE,
-        INFO
-    }
-
-
     [Register("AppDelegate")]
     public class AppDelegate : UIApplicationDelegate
     {
         UIWindow window;
+
+        //A valid license key is required, you can generate one on our website https://sdk.docutain.com/TrialLicense?Source=1376772
         string licenseKey = "YOUR_LICENSE_KEY_HERE";
 
 
@@ -29,7 +22,7 @@ namespace Docutain_SDK_Example_Xamarin_iOS
             InitRootWindow();
 
             // The Docutain SDK needs to be initialized prior to using any functionality
-            // A valid license key is required (contact us via [mailto:sdk@Docutain.com] to get a trial license)
+            //a valid license key is required, you can generate one on our website https://sdk.docutain.com/TrialLicense?Source=1376772
             if (!DocutainSDK.InitSDK(licenseKey))
             {
                 // Initialization of Docutain SDK failed, get last error message
@@ -39,12 +32,18 @@ namespace Docutain_SDK_Example_Xamarin_iOS
                     ShowLicenseEmptyInfo();
                     return false;
                 }
+                else
+                {
+                    ShowLicenseErrorInfo();
+                    return false;
+                }
             }
 
             if (UIDevice.CurrentDevice.CheckSystemVersion(13, 0))
             {
-                // If you want to use text recognition (OCR) and/or data extraction features, you need to set the AnalyzeConfiguration
-                // in order to start all the necessary processes
+                //Reading payment state and BIC when getting the analyzed data is disabled by default
+                //If you want to analyze these 2 fields as well, you need to set the AnalyzeConfig accordingly
+                //A good place to do this, is right after initializing the Docutain SDK
                 var analyzeConfig = new AnalyzeConfiguration
                 {
                     ReadPaymentState = true,
@@ -78,21 +77,45 @@ namespace Docutain_SDK_Example_Xamarin_iOS
 
         private void ShowLicenseEmptyInfo()
         {
-            var alert = UIAlertController.Create("License empty", "A valid license key is required. Please contact us via sdk@Docutain.com to get a trial license.", UIAlertControllerStyle.Alert);
-            alert.AddAction(UIAlertAction.Create("Get license", UIAlertActionStyle.Default, action =>
+            var alert = UIAlertController.Create("License empty", "A valid license key is required. Please click \"Get License\" in order to create a free" +
+                " trial license key on our website.", UIAlertControllerStyle.Alert);
+            alert.AddAction(UIAlertAction.Create("Get License", UIAlertActionStyle.Default, action =>
             {
-                var email = "sdk@Docutain.com";
-                var subject = "Trial%20License%20Request";
-                var mailURLString = $"mailto:{email}?subject={subject}"; //.UrlEncode(NSUrlUtilities.AllowedCharacters); TODO
-                var mailURL = NSUrl.FromString(mailURLString);
-                if (UIApplication.SharedApplication.CanOpenUrl(mailURL))
-                    UIApplication.SharedApplication.OpenUrl(mailURL);
-                else
-                    Console.WriteLine("Mail cannot be opened");
-                window.UserInteractionEnabled = false;
+                var mailURL = NSUrl.FromString("https://sdk.docutain.com/TrialLicense?Source=1376772");
+                UIApplication.SharedApplication.OpenUrl(mailURL);
+                ShowLicenseEmptyInfo(); //keep info popup open
             }));
-            alert.AddAction(UIAlertAction.Create("Cancel", UIAlertActionStyle.Cancel, action => { Environment.Exit(0); }));
             window.RootViewController.PresentViewController(alert, true, null);
+        }
+
+        private void ShowLicenseErrorInfo()
+        {
+            var alert = UIAlertController.Create("License error",
+                "A valid license key is required. Please contact our support to get an extended trial license.",
+                UIAlertControllerStyle.Alert);
+            alert.AddAction(UIAlertAction.Create("Contact Support", UIAlertActionStyle.Default, action =>
+            {
+                SendEmailToSupport(() =>
+                {
+                    ShowLicenseErrorInfo(); //keep info popup open
+                });
+            }));
+            window.RootViewController.PresentViewController(alert, true, null);
+        }
+
+        private void SendEmailToSupport(Action completion)
+        {
+            var mailtoString = $"mailto:support.sdk@Docutain.com?subject=Trial License Error&body=Please keep your following trial license key in this e-mail: {licenseKey}"
+                .Replace(" ", "%20");
+
+            var mailtoUrl = new NSUrl(mailtoString);
+            if (UIApplication.SharedApplication.CanOpenUrl(mailtoUrl))
+            {
+                UIApplication.SharedApplication.OpenUrl(mailtoUrl, new NSDictionary(), success =>
+                {
+                    completion();
+                });
+            }
         }
     }
 }

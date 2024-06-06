@@ -26,6 +26,8 @@
     <MtouchArch>x86_64</MtouchArch>
     <MtouchLink>None</MtouchLink>
     <MtouchDebug>true</MtouchDebug>
+    <CodesignKey>Apple Development: Marvin Frankenfeld (6H8923527C)</CodesignKey>
+    <CodesignProvision>VS: WildCard Development</CodesignProvision>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhoneSimulator' ">
     <DebugType>none</DebugType>
@@ -48,7 +50,8 @@
     <CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
     <CodesignKey>Apple Development: Marvin Frankenfeld (6H8923527C)</CodesignKey>
     <MtouchDebug>true</MtouchDebug>
-    <CodesignProvision>VS: WildCard Development</CodesignProvision>
+    <CodesignProvision>
+    </CodesignProvision>
     <MtouchLink>None</MtouchLink>
     <MtouchFloat32>true</MtouchFloat32>
     <MtouchNoSymbolStrip>true</MtouchNoSymbolStrip>
@@ -67,26 +70,41 @@
     <AppExtensionDebugBundleId />
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Extensions.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
     <Compile Include="NavigationController.cs" />
+    <Compile Include="Setting\BoolSetting.cs" />
+    <Compile Include="Setting\BoolSettingCell.cs" />
+    <Compile Include="Setting\ColorSetting.cs" />
+    <Compile Include="Setting\ColorSettingCell.cs" />
+    <Compile Include="Setting\DocutainPreferences.cs" />
+    <Compile Include="Setting\HeaderCell.cs" />
+    <Compile Include="Setting\PickerSetting.cs" />
+    <Compile Include="Setting\PickerSettingCell.cs" />
+    <Compile Include="Setting\Setting.cs" />
+    <Compile Include="Setting\ISettingCell.cs" />
+    <Compile Include="Setting\ViewControllerSettings.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="TableViewCell.cs" />
     <Compile Include="ViewController.cs" />
     <Compile Include="ViewControllerDataResult.cs" />
     <Compile Include="ViewControllerTextResult.cs" />
-    <BundleResource Include="Resources\DocumentScanner.png" />
-    <BundleResource Include="Resources\DocumentScanner%402x.png" />
-    <BundleResource Include="Resources\DocumentScanner%403x.png" />
-    <BundleResource Include="Resources\PDF.png" />
-    <BundleResource Include="Resources\PDF%402x.png" />
-    <BundleResource Include="Resources\PDF%403x.png" />
-    <BundleResource Include="Resources\DataExtraction.png" />
-    <BundleResource Include="Resources\DataExtraction%402x.png" />
-    <BundleResource Include="Resources\DataExtraction%403x.png" />
-    <BundleResource Include="Resources\OCR.png" />
-    <BundleResource Include="Resources\OCR%402x.png" />
-    <BundleResource Include="Resources\OCR%403x.png" />
+    <BundleResource Include="Resources\icons8-document-50.png" />
+    <BundleResource Include="Resources\icons8-document-100%402×.png" />
+    <BundleResource Include="Resources\icons8-document-150%403×.png" />
+    <BundleResource Include="Resources\icons8-scanner-50.png" />
+    <BundleResource Include="Resources\icons8-scanner-100%402×.png" />
+    <BundleResource Include="Resources\icons8-scanner-150%403×.png" />
+    <BundleResource Include="Resources\icons8-text-box-50.png" />
+    <BundleResource Include="Resources\icons8-text-box-100%402×.png" />
+    <BundleResource Include="Resources\icons8-text-box-150%403×.png" />
+    <BundleResource Include="Resources\icons8-pdf-50.png" />
+    <BundleResource Include="Resources\icons8-pdf-100%402×.png" />
+    <BundleResource Include="Resources\icons8-pdf-150%403×.png" />
+    <BundleResource Include="Resources\icons8-settings-50.png" />
+    <BundleResource Include="Resources\icons8-settings-100%402×.png" />
+    <BundleResource Include="Resources\icons8-settings-150%403×.png" />
     <None Include="Info.plist" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Entitlements.plist" />
@@ -108,7 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Docutain.SDK.Xamarin.iOS">
-      <Version>1.0.0</Version>
+      <Version>1.2.1</Version>
     </PackageReference>
     <PackageReference Include="System.Text.Json">
       <Version>7.0.3</Version>
